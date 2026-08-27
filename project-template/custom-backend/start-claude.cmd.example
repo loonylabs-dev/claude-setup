@@ -1,0 +1,22 @@
+@echo off
+REM Start Claude Code for this project with the browser tools off.
+REM
+REM Chrome integration has no per-project settings key -- only the --chrome /
+REM --no-chrome CLI flags -- so it can only be turned off from a wrapper. Saves the
+REM ~22 mcp__claude-in-chrome__* tool names in the startup context.
+REM
+REM The IDE connection is handled separately, by CLAUDE_CODE_AUTO_CONNECT_IDE in
+REM .claude/settings.local.json.
+REM
+REM Rename this file to <project>.cmd, put it in the project root, and start the
+REM project with it instead of `claude`.
+REM
+REM Usage:  <project>            (normal start)
+REM         <project> --chrome   (this session WITH browser tools)
+REM         claude               (bypass the wrapper entirely)
+REM
+REM For a fully separate profile -- own history, own credentials, own settings --
+REM uncomment the next line. See docs/context-budget.md for the trade-off.
+REM set CLAUDE_CONFIG_DIR=%~dp0.claude-profile
+
+call claude --no-chrome %*

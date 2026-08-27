@@ -1,0 +1,74 @@
+# Allowlist principle: EVERYTHING is ignored, only explicitly opted-in config is versioned.
+# Why: this directory also holds .credentials.json (OAuth token), projects/ (complete
+# session transcripts), history.jsonl and assorted caches. A denylist would be a leak
+# risk with every new file Claude Code drops in here. Under this allowlist, anything
+# new is ignored by default.
+#
+# NEVER force with `git add -f`. If something is missing, add a ! rule here instead.
+
+*
+
+# --- Versioned configuration ---
+!.gitignore
+!README.md
+# Global CLAUDE.md: carries the rules that hold across projects (language, honesty,
+# confidence gate, tests, handover). Anything project-specific belongs in that
+# project's own CLAUDE.md, not here.
+!CLAUDE.md
+# Imported by CLAUDE.md as @language.md, so it loads at session start. Carries both
+# language axes; switching means replacing this file and settings.json.
+!language.md
+!settings.json
+# Binds the clean filter to settings.json (see scripts/strip-volatile-settings.mjs):
+# model and effort are written by the UI and do not belong in the history.
+!.gitattributes
+
+# Public-repository furniture
+!LICENSE
+!CONTRIBUTING.md
+!SECURITY.md
+
+# Statusline
+!ccstatusline-config.json
+!statusline-command.sh
+!statusline-wrapper.cmd
+!statusline-wrapper.sh
+
+# Own skills — un-ignore the directory first, so git looks inside it. These rules
+# reach recursively, at any depth. Everything invocable lives here: what used to be
+# commands/ moved in on 2026-08-27, one mechanism instead of two.
+!skills/
+!skills/**
+
+# CI. Runs only the three tests that check the repository's content; settings-hygiene
+# checks this machine's .git/config and stays local — the workflow says why.
+!.github/
+!.github/**
+
+# The Bash guard: three "never" rules from CLAUDE.md as a gate rather than a request,
+# because a command has no file for a path-scoped rule to hang on. Fail-open by design,
+# so tests/bash-guard.test.mjs is what proves it still bites.
+!hooks/
+!hooks/**
+
+# Path-scoped rules — sections of CLAUDE.md that only hold for some projects.
+# Frontmatter `paths` makes them load when a matching file is read and cost nothing
+# otherwise; measured to work at user scope on 2.1.245, see docs/context-budget.md.
+!rules/
+!rules/**
+
+# Tests of the workflow harnesses (node tests/<file>, no dependencies)
+!tests/
+!tests/**
+
+# Templates to copy into a new project (carried over from claude-setup)
+!project-template/
+!project-template/**
+
+# Own notes and documentation about the Claude setup itself
+!docs/
+!docs/**
+
+# Reusable scripts that commands call (claude-md-audit and others)
+!scripts/
+!scripts/**

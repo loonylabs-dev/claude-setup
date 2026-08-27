@@ -1,0 +1,29 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://your-proxy.example.com",
+    "ANTHROPIC_AUTH_TOKEN": "REPLACE-ME",
+    "ANTHROPIC_MODEL": "your-model",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "your-small-model",
+
+    "API_TIMEOUT_MS": "1800000",
+    "API_FORCE_IDLE_TIMEOUT": "0",
+    "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "65536",
+
+    "ENABLE_TOOL_SEARCH": "true",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_AUTO_CONNECT_IDE": "false",
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0"
+  },
+
+  "claudeMdExcludes": [
+    "C:/Users/YOU/.claude/CLAUDE.md",
+    "C:\\Users\\YOU\\.claude\\CLAUDE.md"
+  ],
+
+  "disableBundledSkills": true,
+  "skillListingBudgetFraction": 0.005,
+
+  "enabledPlugins": {},
+
+  "skillOverrides": {}
+}

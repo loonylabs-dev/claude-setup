@@ -1,0 +1,60 @@
+{
+  "agentPushNotifEnabled": true,
+  "alwaysThinkingEnabled": true,
+  "autoCompactEnabled": false,
+  "autoMemoryEnabled": false,
+  "autoUpdatesChannel": "latest",
+  "awaySummaryEnabled": false,
+  "enabledPlugins": {
+    "greptile@claude-plugins-official": false,
+    "supabase@claude-plugins-official": false,
+    "playwright@claude-plugins-official": false,
+    "serena@claude-plugins-official": false,
+    "security-guidance@claude-plugins-official": true,
+    "ll@loonylabs": false
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/bash-guard.mjs"
+          }
+        ]
+      }
+    ]
+  },
+  "language": "german",
+  "permissions": {
+    "allow": [
+      "Read(~/.claude/**)"
+    ]
+  },
+  "preferredNotifChannel": "notifications_disabled",
+  "remoteControlAtStartup": false,
+  "skillOverrides": {
+    "design": "user-invocable-only",
+    "fewer-permission-prompts": "user-invocable-only",
+    "init": "user-invocable-only",
+    "keybindings-help": "user-invocable-only",
+    "loop": "user-invocable-only",
+    "run": "user-invocable-only",
+    "schedule": "user-invocable-only",
+    "security-review": "user-invocable-only",
+    "simplify": "user-invocable-only"
+  },
+  "skipAutoPermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline-wrapper.cmd"
+  },
+  "tui": "fullscreen",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "voiceEnabled": true
+}

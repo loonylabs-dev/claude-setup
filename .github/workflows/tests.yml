@@ -1,0 +1,41 @@
+name: tests
+
+# Two classes of test live in tests/, and only one of them can run here.
+#
+# These three check the CONTENT of the repository — no German prose, every rule in
+# rules/ actually conditional, the Bash guard still biting. They pass or fail the same
+# way on any machine, so CI is the right place for them.
+#
+# tests/settings-hygiene.test.mjs is deliberately absent. It checks whether the git
+# clean filter is registered in .git/config ON THIS MACHINE, which a fresh runner never
+# has. Running it here would fail every time, and "fix" it by skipping the one thing it
+# exists to verify. It stays a local check.
+#
+# If you add a test, decide which class it is in. A machine-dependent one added to the
+# list below turns this workflow permanently red.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # No dependencies anywhere in this repo — nothing to install, nothing to cache.
+      - name: language census
+        run: node tests/language-census.test.mjs
+
+      - name: rules are conditional
+        run: node tests/rules-hygiene.test.mjs
+
+      - name: bash guard
+        run: node tests/bash-guard.test.mjs
