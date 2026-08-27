@@ -1,5 +1,6 @@
 ---
 description: 'Brainstorming, analysis and conversation mode - no file changes or code creation without explicit permission.'
+disable-model-invocation: true
 ---
 
 # Work With Me Mode

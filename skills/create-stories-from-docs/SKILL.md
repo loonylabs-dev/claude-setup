@@ -1,5 +1,6 @@
 ---
 description: 'Turn prepared UX/feature documents into implementation-ready stories. Interactive workflow with clarifying questions.'
+disable-model-invocation: true
 ---
 
 # Story Creation Workflow

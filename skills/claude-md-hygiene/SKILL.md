@@ -1,5 +1,6 @@
 ---
 description: 'Hygiene and compression pass over CLAUDE.md (distil, strip filler, drop stale, archive per topic) — WITHOUT new learnings. Owns every compression rule.'
+disable-model-invocation: true
 ---
 
 # CLAUDE.md Hygiene (audit & compression)

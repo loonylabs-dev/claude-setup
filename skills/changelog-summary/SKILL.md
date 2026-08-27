@@ -1,5 +1,6 @@
 ---
 description: 'Compact summary of the last 7 days of changes, from a technical and an end-user angle, based on git commits and branches. Optional parameter: number of days (e.g. `/changelog-summary 14`).'
+disable-model-invocation: true
 ---
 
 # Changelog Summary

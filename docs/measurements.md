@@ -107,7 +107,8 @@ answer this (next section).
 |---|---|---|
 | default | 7964 chars | 27 |
 | 2 bundled skills hidden | 7133 | 25 |
-| 9 bundled skills hidden *(current)* | 6381 | 18 |
+| 9 bundled skills hidden | 6381 | 18 |
+| …plus all 11 own skills hidden *(current)* | **4787** | 7 |
 | 13 hidden, 3 kept | 3190 | 14 |
 | `disableBundledSkills` | 1607 | 11 |
 | `skillListingBudgetFraction` doubled | 9310 | 27 |
@@ -122,9 +123,15 @@ characters. The fraction is a backstop against future growth, not a lever on tod
 returned 831, because the survivors expand into the space freed. The eleven own skills cost
 405 characters when the listing is full and 1607 when they are alone — the same skills.
 
-**`user-invocable-only` is stronger than "hidden".** A model invocation of such a skill is
-*refused with an error*, not quietly skipped. Hiding a skill Claude is instructed to load by
-itself means it works without that guidance and nothing says so.
+**Hiding is a refusal, not an omission.** A model invocation of a skill hidden by
+`user-invocable-only` or `disable-model-invocation` comes back as an error. Asking for it in
+prose does not help — the model is not the user, and the call is refused the same way.
+
+**And the refusal is not what the model reports.** Asked in prose for something a hidden skill
+covers, Claude improvises the task by hand rather than saying a tool is unavailable: "use the
+handover skill" produced an ad-hoc answer, not the skill's procedure, with nothing indicating
+that anything had been skipped. Hiding trades context against the risk of a worse answer that
+looks like a normal one.
 
 ### `/context` under-reports this, and it is a known bug
 

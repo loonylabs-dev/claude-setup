@@ -149,7 +149,10 @@ instead of quietly letting the raw file through.
 ## Maintenance
 
 - **Adding a skill:** `skills/<name>/SKILL.md`, commit. Write it in English —
-  `tests/language-census.test.mjs` fails on German prose, per file *and* per line.
+  `tests/language-census.test.mjs` fails on German prose, per file *and* per line. Every skill
+  here carries `disable-model-invocation: true`: they are started by hand with `/name` and cost
+  the listing nothing. Leave it out only for a skill you want Claude to offer on its own, and
+  know that it then costs its description in every session.
 - **Adding a rule:** `rules/<topic>.md` **with** a `paths` frontmatter.
   `tests/rules-hygiene.test.mjs` refuses one without, because it would load in every session:
   a second CLAUDE.md that nobody is looking at.

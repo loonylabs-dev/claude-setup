@@ -52,6 +52,10 @@ nothing. Use for skills that are always deliberately started by hand. **This is 
 reach for by default** — it travels with the skill, including into a plugin, where the other one
 stops working (section 5).
 
+It is a refusal, not just an omission: a model invocation comes back as
+`cannot be invoked via the Skill tool (disable-model-invocation)`. See section 4 for what that
+means in practice.
+
 ### `skillOverrides` in `settings.json`
 
 Owned by the configuration, keyed by skill name. Four levels:
@@ -108,15 +112,24 @@ there once, accept the trust dialog, and it takes effect.
 
 ---
 
-## 4. How a hidden skill still gets used
+## 4. How a hidden skill still gets used — one way, not three
 
-With `user-invocable-only`, Claude does not know the skill exists. Three ways in, two of them
-open:
+A skill hidden by `user-invocable-only` or `disable-model-invocation` is reachable through
+**`/name` and nothing else**. For a plugin skill that is `/<plugin>:<name>`.
 
-- Claude proposing it by itself — **no**, it is not in the listing.
-- `/name` — yes, unchanged. For a plugin skill that is `/<plugin>:<name>`.
-- Naming it in plain prose ("use <name> for this") — yes. Names typed by the user are valid
-  for the Skill tool even when they are absent from the listing, so the slash is optional.
+- Claude proposing it by itself — no, it is not in the listing.
+- **Naming it in plain prose ("use handover for this") — also no.** This entry said yes until
+  2026-08-27, and it was wrong: the Skill tool refuses the call outright, with
+  `cannot be invoked via the Skill tool (disable-model-invocation)`. Asking in prose does not
+  make the model the user.
+- `/name` — yes, unchanged.
+
+**The failure mode this creates is worth knowing.** Asked in prose for something a hidden
+skill covers, Claude does not report a missing tool — it improvises the task by hand. Measured:
+"use the handover skill" produced an ad-hoc answer about the directory, not the skill's
+procedure, and nothing indicated that a skill had been skipped. Hiding a skill therefore trades
+context against the risk of a worse answer that looks like a normal one. Hide what you reliably
+start yourself; leave visible what you want offered.
 
 ---
 
@@ -156,12 +169,18 @@ Two more things that surfaced with it:
 
 ## 6. Current configuration
 
-`~/.claude/skills/` holds eleven skills, all of them proposable — they answer situations rather
-than domains, which is the only kind a description can usefully advertise. Together they cost
-405 characters of listing; they are not the expensive part.
+`~/.claude/skills/` holds eleven skills, and since 2026-08-27 **all of them carry
+`disable-model-invocation`**: they are started by hand, with `/name`, and cost the listing
+nothing. That is a deliberate reversal — they used to be proposable, on the argument that they
+answer a *situation* rather than a domain. What changed the decision was the measurement: the
+eleven cost about 400 tokens in every session of every project, against a handful of occasions
+per week where being offered one would have helped. The switch lives in each SKILL.md rather
+than in `skillOverrides`, because these files are ours: the flag travels with the skill, which
+is exactly what `skillOverrides` failed to do when sixteen skills moved into the plugin.
 
 `skillOverrides` hides nine of the **bundled** skills — the ones a check of 18255 history
-entries showed had never once been typed. Listing 7964 → 6381 characters, measured 2026-08-27:
+entries showed had never once been typed. With the eleven own skills hidden as well, the
+listing went 7964 → 4787 characters, measured 2026-08-27:
 
 ```jsonc
 "skillOverrides": {

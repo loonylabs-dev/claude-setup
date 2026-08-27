@@ -1,5 +1,6 @@
 ---
 description: 'Execute ONE story with progress tracking, auto-commit, and completion report. Pass story file paths as arguments.'
+disable-model-invocation: true
 ---
 
 # Execute Story

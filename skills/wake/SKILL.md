@@ -1,5 +1,6 @@
 ---
 description: 'Sets a one-off wake-up timer. Argument: a time such as "3h", "90m", "01:45" or "in 2 hours". Example: `/wake 3h`'
+disable-model-invocation: true
 ---
 
 # Wake-Up Timer

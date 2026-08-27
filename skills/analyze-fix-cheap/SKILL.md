@@ -1,5 +1,6 @@
 ---
 description: 'Efficiently analyze and fix problems with targeted search, single-point proposal, and quality-gated implementation (80/20 approach).'
+disable-model-invocation: true
 ---
 
 # Efficient Analyze & Fix Workflow (80/20)

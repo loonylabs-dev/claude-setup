@@ -1,5 +1,6 @@
 ---
 description: 'Stops the question barrage. Claude asks open questions one at a time from here on, with pros and cons per option and a UX focus instead of engineering talk.'
+disable-model-invocation: true
 ---
 
 # Step-by-step mode

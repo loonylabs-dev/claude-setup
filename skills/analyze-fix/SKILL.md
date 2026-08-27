@@ -1,5 +1,6 @@
 ---
 description: 'Analyze and fix a problem with deep exploration, confidence check, solution variants, and autonomous implementation.'
+disable-model-invocation: true
 ---
 
 # Analyze & Fix Workflow

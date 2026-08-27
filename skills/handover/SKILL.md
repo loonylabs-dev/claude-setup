@@ -1,5 +1,6 @@
 ---
 description: 'Rewrites docs/HANDOVER.md — the baton for the next session: where things stand, what is open, what to read first.'
+disable-model-invocation: true
 ---
 
 # Handover

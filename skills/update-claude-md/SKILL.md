@@ -1,5 +1,6 @@
 ---
 description: 'End of session: fold lasting learnings into CLAUDE.md (add, correct, remove).'
+disable-model-invocation: true
 ---
 
 # Update CLAUDE.md (fold in the session's learnings)
