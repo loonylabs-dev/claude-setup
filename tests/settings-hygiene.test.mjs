@@ -23,6 +23,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const VOLATILE_KEYS = ['model', 'effortLevel', 'modelSettings', 'fastMode']
 const SETUP = [
   'git config filter.claude-settings.clean "node scripts/strip-volatile-settings.mjs"',
+  'git config filter.claude-settings.smudge cat',
   'git config filter.claude-settings.required true',
 ].join('\n  ')
 
@@ -61,6 +62,22 @@ console.log('settings.json hygiene')
 check('the filter is registered on this machine', () => {
   const clean = gitOrEmpty('config', '--get', 'filter.claude-settings.clean')
   if (!clean) throw new Error(`filter.claude-settings.clean is unset. Register it:\n  ${SETUP}`)
+})
+
+// Measured 2026-08-29, and it broke a working tree before it was understood: with
+// `required = true` and no smudge command registered, git aborts any checkout that has
+// to WRITE settings.json — `git checkout main` stopped mid-tree, leaving the file gone
+// and five others with it. The clean filter alone looks complete and is not. `cat` is a
+// pass-through: nothing is transformed on the way out, and `required` keeps its meaning
+// on the way in.
+check('a checkout can write settings.json', () => {
+  const smudge = gitOrEmpty('config', '--get', 'filter.claude-settings.smudge')
+  if (!smudge) {
+    throw new Error(
+      'filter.claude-settings.smudge is unset. With required=true that fails every ' +
+        `checkout that rewrites settings.json. Register it:\n  ${SETUP}`
+    )
+  }
 })
 
 check('a failing filter aborts the commit instead of passing the file through', () => {

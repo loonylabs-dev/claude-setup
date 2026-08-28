@@ -14,6 +14,7 @@ rather than estimated.
 git clone https://github.com/loonylabs-dev/claude-setup.git ~/.claude
 cd ~/.claude
 git config filter.claude-settings.clean "node scripts/strip-volatile-settings.mjs"
+git config filter.claude-settings.smudge cat
 git config filter.claude-settings.required true
 node tests/settings-hygiene.test.mjs     # says so if that registration is missing
 ```
@@ -192,6 +193,7 @@ git clone https://github.com/loonylabs-dev/claude-setup.git /tmp/claude-setup
 mv /tmp/claude-setup/.git ~/.claude/.git
 cd ~/.claude && git checkout -- .
 git config filter.claude-settings.clean "node scripts/strip-volatile-settings.mjs"
+git config filter.claude-settings.smudge cat
 git config filter.claude-settings.required true
 ```
 
@@ -228,6 +230,16 @@ the first and not the second, and would commit the file unfiltered without a wor
 what `node tests/settings-hygiene.test.mjs` is for, and why it is the one test that cannot run
 in CI: it checks *this machine*. `required true` means a broken filter aborts the commit
 instead of quietly letting the raw file through.
+
+**And it is why `smudge` has to be registered too, even though it does nothing.** With
+`required true`, a filter with no smudge command fails every checkout that has to *write*
+`settings.json` — not commits, checkouts. Measured 2026-08-29: `git checkout main` stopped
+mid-tree with `smudge filter 'claude-settings' failed`, leaving `settings.json` gone and
+five other files with it. The clean filter alone looks complete and is not, and the symptom
+appears far from the cause: on a machine where the file already matches the commit, nothing
+happens for months. `cat` is the pass-through — nothing is transformed on the way out, and
+`required` keeps its meaning on the way in. The tempting fix, `required false`, would trade
+a broken checkout for the silent unfiltered commit this whole section exists to prevent.
 
 ## Maintenance
 
