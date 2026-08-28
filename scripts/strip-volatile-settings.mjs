@@ -18,6 +18,7 @@
 // machine (it lives in .git/config, not in the repository):
 //
 //   git config filter.claude-settings.clean "node scripts/strip-volatile-settings.mjs"
+//   git config filter.claude-settings.smudge cat
 //   git config filter.claude-settings.required true
 //
 // `required true` makes a broken filter abort the commit instead of silently
