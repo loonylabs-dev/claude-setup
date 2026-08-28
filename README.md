@@ -32,6 +32,12 @@ The honest answer first, because much of what is here is shaped by one machine.
 | **Per-OS** | `env-windows.md` and `env-linux.md`, and the status line wrappers. One environment file is loaded at session start, the other is inert on disk — see [Environment rules per OS](#environment-rules-per-os) |
 | **Personal** | the eleven skills, and the working conventions in `CLAUDE.md` |
 
+The status line is the one place a machine still needs un-versioned configuration:
+`settings.json` names `statusline-wrapper.cmd`, and a Linux install overrides `statusLine`
+to `statusline-wrapper.sh` in its own `settings.local.json` — verified rendering there on
+2026-08-29. Whether Windows can use the `.sh` directly is unmeasured; if it can, the
+`.cmd` and the override both go away.
+
 Measured on Windows and, since 2026-08-28, on Linux — the numbers in [`docs/`](docs/) say
 which. macOS is untried: `env-macos.md` does not exist yet, and the hook that would select
 it says so in prose rather than loading nothing quietly. The mechanisms are documented in
