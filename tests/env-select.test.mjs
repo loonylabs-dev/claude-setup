@@ -17,7 +17,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { envFileFor, render } from '../hooks/select-env.mjs'
+import { envFileFor, render, renderFailure } from '../hooks/select-env.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -49,6 +49,15 @@ check(present.includes('@env-machine.md'), 'env-machine.md is always imported')
 const absent = render('darwin', false)
 check(!/^@env-macos\.md$/m.test(absent), 'a missing OS file produces no dangling import')
 check(/no environment file/i.test(absent), 'a missing OS file is stated in prose instead')
+
+// A failure of the selection itself is the case with no channel to report it: measured
+// 2026-08-28, Claude Code discards a SessionStart hook's exit code and its stderr. So the
+// pointer has to carry the bad news, and must not leave a stale import standing.
+const broken = renderFailure('EACCES: permission denied')
+check(!/^@env-(windows|linux|macos)\.md$/m.test(broken), 'a failed selection imports no OS file')
+check(/selection failed/i.test(broken), 'a failed selection says so in prose')
+check(/EACCES/.test(broken), 'a failed selection carries the underlying error')
+check(broken.includes('@env-machine.md'), 'a failed selection still imports the machine notes')
 
 // --- the wiring -------------------------------------------------------------
 const claudeMd = readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8')

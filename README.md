@@ -158,14 +158,23 @@ runs after the instruction files are read would fix things one session late, sil
 | `InstructionsLoaded` | `env-local.md` — `load_reason: include` |
 
 Both files' markers reached the model in that same run, from a pointer that did not exist
-when the session was invoked. Nested imports work two levels deep. Verified with matcher
-`startup`; `resume`, `clear` and `compact` are covered by the matcher but not measured.
+when the session was invoked. Nested imports work two levels deep. `resume` fires the hook
+too — the pointer was deleted between two runs and the resumed session restored it.
+`clear` and `compact` need an interactive session and are not measured; nothing depends on
+them, since the file persists and the hook is idempotent.
 
-**The failure mode this is built around is silence.** Measured in the same session: with
+**The failure mode this is built around is silence, and it is silent twice over.** With
 `env-local.md` absent, Claude Code started without a word, `InstructionsLoaded` logged only
-`CLAUDE.md`, and the session simply had no environment rules. Nothing reports that. Hence
-`tests/env-select.test.mjs`, and hence the hook writing visible prose — not a dangling
-import — when an OS file is missing.
+`CLAUDE.md`, and the session simply had no environment rules. And the hook cannot report
+its own failure either: one exiting 1 with a message on stderr produced no output, no
+warning and exit 0 from `claude -p` — both channels discarded. (Headless mode; the
+interactive TUI is unverified.)
+
+So the only channel left is the file the model reads, which is what the hook writes to in
+both cases — prose rather than a dangling import when an OS file is missing, and prose
+rather than a stale pointer when selection itself fails. A leftover pointer naming another
+machine's OS is the worse outcome of the two: it loads confidently wrong rules.
+`tests/env-select.test.mjs` covers both shapes.
 
 ## Restore on an existing machine
 
@@ -185,6 +194,19 @@ below; Claude Code falls back to its defaults and nothing breaks.
 
 Not restored by design: credentials (log in again), session transcripts, caches, and
 installed plugins.
+
+Plugins need one more step, and it is the one the clean filter deliberately takes away:
+`extraKnownMarketplaces` records an absolute path of the machine that added it, so it is
+stripped on the way into git. A fresh clone therefore has no marketplaces at all, without
+saying so. `enabledPlugins` names five plugins from the official one:
+
+```bash
+claude plugin marketplace add anthropics/claude-plugins-official
+```
+
+`enabledPlugins` also carries one entry from a private marketplace. It is set to `false`,
+and for anyone else it is simply inert — measured 2026-08-28: a session with an
+unregistered marketplace in that list starts with no warning, no error and exit 0.
 
 ### Why `settings.json` needs a filter
 
