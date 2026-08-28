@@ -18,6 +18,13 @@
 # Imported by CLAUDE.md as @language.md, so it loads at session start. Carries both
 # language axes; switching means replacing this file and settings.json.
 !language.md
+# Per-OS environment rules. hooks/select-env.mjs picks one at session start and writes
+# the pointer env-local.md that CLAUDE.md imports. That pointer and env-machine.md
+# (this installation's own notes) stay UN-versioned: the `*` rule above already ignores
+# them, deliberately without a `!` — a generated file and a machine fact do not belong
+# in a repository shared across machines.
+!env-windows.md
+!env-linux.md
 !settings.json
 # Binds the clean filter to settings.json (see scripts/strip-volatile-settings.mjs):
 # model and effort are written by the UI and do not belong in the history.

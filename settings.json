@@ -2,6 +2,7 @@
   "agentPushNotifEnabled": true,
   "alwaysThinkingEnabled": true,
   "autoCompactEnabled": false,
+  "autoContinueAtUsageLimit": true,
   "autoMemoryEnabled": false,
   "autoUpdatesChannel": "latest",
   "awaySummaryEnabled": false,
@@ -24,8 +25,20 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/select-env.mjs"
+          }
+        ]
+      }
     ]
   },
+  "inputNeededNotifEnabled": true,
   "language": "german",
   "permissions": {
     "allow": [
@@ -51,6 +64,7 @@
     "type": "command",
     "command": "~/.claude/statusline-wrapper.cmd"
   },
+  "theme": "dark",
   "tui": "fullscreen",
   "voice": {
     "enabled": true,
