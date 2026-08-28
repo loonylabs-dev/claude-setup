@@ -2,9 +2,16 @@ name: tests
 
 # Two classes of test live in tests/, and only one of them can run here.
 #
-# These three check the CONTENT of the repository — no German prose, every rule in
-# rules/ actually conditional, the Bash guard still biting. They pass or fail the same
-# way on any machine, so CI is the right place for them.
+# These four check the CONTENT of the repository — no German prose, every rule in
+# rules/ actually conditional, the Bash guard still biting, the per-OS environment
+# split wired up. They pass or fail the same way on any machine, so CI is the right
+# place for them.
+#
+# tests/env-select.test.mjs is the one that needed a decision. Its last check asks
+# about the running machine — whether env-local.md exists and points at this OS —
+# which would fail on a fresh runner. It is here anyway because that state can be
+# PRODUCED rather than assumed: the step below runs the SessionStart hook first, the
+# same way a real session does. That also makes the hook itself a CI check.
 #
 # tests/settings-hygiene.test.mjs is deliberately absent. It checks whether the git
 # clean filter is registered in .git/config ON THIS MACHINE, which a fresh runner never
@@ -39,3 +46,9 @@ jobs:
 
       - name: bash guard
         run: node tests/bash-guard.test.mjs
+
+      # Runs the SessionStart hook exactly as a session would, then checks the result.
+      - name: per-OS environment split
+        run: |
+          node hooks/select-env.mjs
+          node tests/env-select.test.mjs

@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/loonylabs-dev/claude-setup/actions/workflows/tests.yml/badge.svg)](https://github.com/loonylabs-dev/claude-setup/actions/workflows/tests.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![platform](https://img.shields.io/badge/platform-Windows%20%C2%B7%20Git%20Bash-lightgrey)](#does-this-fit-your-setup)
+[![platform](https://img.shields.io/badge/platform-Windows%20%C2%B7%20Linux-lightgrey)](#does-this-fit-your-setup)
 [![context](https://img.shields.io/badge/startup%20context-measured-green)](docs/measurements.md)
 
 **A `~/.claude` you can clone, with the parts that cost context measured rather than
@@ -28,12 +28,15 @@ The honest answer first, because much of what is here is shaped by one machine.
 
 | | |
 |---|---|
-| **Portable** | the `.gitignore` allowlist, the settings clean filter, the four tests, the way rules and skills are split, and every measurement in [`docs/`](docs/) that is about Claude Code itself |
-| **Windows-specific** | the status line wrappers, and most environment rules in `CLAUDE.md` — PowerShell 5.1 quirks, Git Bash path rewriting, `taskkill`, spawning `.cmd` from Node |
+| **Portable** | the `.gitignore` allowlist, the settings clean filter, the five tests, the way rules and skills are split, the per-OS environment split, and every measurement in [`docs/`](docs/) that is about Claude Code itself |
+| **Per-OS** | `env-windows.md` and `env-linux.md`, and the status line wrappers. One environment file is loaded at session start, the other is inert on disk — see [Environment rules per OS](#environment-rules-per-os) |
 | **Personal** | the eleven skills, and the working conventions in `CLAUDE.md` |
 
-Nothing here was measured on macOS or Linux. The mechanisms are documented in enough detail
-to check them yourself — that is what [`docs/measurements.md`](docs/measurements.md) is for.
+Measured on Windows and, since 2026-08-28, on Linux — the numbers in [`docs/`](docs/) say
+which. macOS is untried: `env-macos.md` does not exist yet, and the hook that would select
+it says so in prose rather than loading nothing quietly. The mechanisms are documented in
+enough detail to check them yourself — that is what
+[`docs/measurements.md`](docs/measurements.md) is for.
 
 ## What you get that a dotfiles repository does not
 
@@ -52,17 +55,20 @@ session transcript, and your shell history. The `.gitignore` here is an **allowl
 first rule is `*`, and everything tracked is opted in below it. A new file Claude Code drops
 into the directory is ignored by default — the safe direction to be wrong in.
 
-**Tests for the configuration itself.** Four, plain `node`, no dependencies: that the settings
+**Tests for the configuration itself.** Five, plain `node`, no dependencies: that the settings
 clean filter is registered on this machine, that no German prose slipped into an English
-repository, that every file in `rules/` is genuinely conditional, and that the Bash guard
-still refuses the three commands it exists for. Three run in CI; the fourth checks this
+repository, that every file in `rules/` is genuinely conditional, that the Bash guard
+still refuses the three commands it exists for, and that the per-OS environment split is
+wired up rather than silently loading nothing. Four run in CI; the fifth checks this
 machine and says so rather than pretending otherwise.
 
 ## What it is not
 
 - **Not a starter kit.** No install script, no opinionated bootstrap. It is one person's
   `~/.claude`, published because the measurements in it are worth more than the config.
-- **Not cross-platform.** See the table above.
+- **Not a cross-platform promise.** It runs on Windows and Linux, and the split that makes
+  that work is real — but `env-linux.md` is nearly empty, because it has to earn its
+  entries the same way the Windows one did. macOS is untried.
 - **Not a skill collection.** Eleven skills, all about *working* rather than any domain. The
   project-bound ones live in a private plugin — that split is the point.
 
@@ -85,6 +91,8 @@ machine and says so rather than pretending otherwise.
 | [`CLAUDE.md`](CLAUDE.md) | loaded into **every** session of every project; only rules that hold everywhere |
 | [`rules/`](rules/) | rules for a *kind* of project — a `paths` glob loads each one only when a matching file is read |
 | [`language.md`](language.md) | the two language axes, imported by `CLAUDE.md`, and the only place either is named |
+| `env-windows.md`, `env-linux.md` | environment rules for one operating system; exactly one is imported per session, the others sit inert |
+| `env-local.md`, `env-machine.md` | **not versioned** — the generated pointer, and this installation's own notes |
 | [`skills/`](skills/) | everything invocable by name |
 | [`docs/`](docs/) | what was measured about this setup and is documented nowhere else |
 | [`hooks/`](hooks/) | the Bash guard: three "never" rules as a gate rather than a request |
@@ -111,6 +119,53 @@ CLAUDE.md-hygiene rules moved here, taking 2429 characters out of the always-on 
 The boundary that matters: a path-scoped rule hangs on a *file being read*. A rule about a
 **command** has nothing to hang on, and would be silently missing exactly when it is needed —
 so those stay in `CLAUDE.md`, or become a hook. That is why [`hooks/`](hooks/) exists.
+
+## Environment rules per OS
+
+`CLAUDE.md` holds what is true everywhere. Environment rules are not that: PowerShell 5.1
+encoding, `taskkill`, Git Bash path rewriting are Windows facts, and on Linux they are not
+merely unused but misleading.
+
+They cannot go in [`rules/`](rules/) — a path glob hangs on a *file being read*, and an
+environment rule has no file. And an `@` import is unconditional, so an import line chosen
+per OS would sit in the versioned `CLAUDE.md` and be a merge conflict on every machine,
+forever.
+
+So the one branch Claude Code cannot express is done by a `SessionStart` hook,
+[`hooks/select-env.mjs`](hooks/select-env.mjs). It reads `process.platform` and writes
+`env-local.md` — the pointer `CLAUDE.md` imports:
+
+```
+CLAUDE.md  ->  @env-local.md  ->  @env-windows.md   (generated per machine)
+                               -> @env-machine.md   (this installation's own notes)
+```
+
+`CLAUDE.md`, `settings.json` and the hook are byte-identical on every machine. `env-local.md`
+and `env-machine.md` are un-versioned, and the allowlist ignores them without needing a rule.
+There is **no per-machine registration** — unlike the settings filter, a fresh clone is
+correct on its first start.
+
+**Measured 2026-08-28, Claude Code 2.1.241.** The open question was ordering: a hook that
+runs after the instruction files are read would fix things one session late, silently.
+`env-local.md` was deleted, then a session started with both a `SessionStart` and an
+`InstructionsLoaded` hook attached:
+
+| | |
+|---|---|
+| `SessionStart` | wrote `env-linux.md` as the target |
+| `InstructionsLoaded` | `env-linux.md` — `load_reason: include` |
+| `InstructionsLoaded` | `CLAUDE.md` — `load_reason: session_start` |
+| `InstructionsLoaded` | `env-local.md` — `load_reason: include` |
+
+Both files' markers reached the model in that same run, from a pointer that did not exist
+when the session was invoked. Nested imports work two levels deep. Verified with matcher
+`startup`; `resume`, `clear` and `compact` are covered by the matcher but not measured.
+
+**The failure mode this is built around is silence.** Measured in the same session: with
+`env-local.md` absent, Claude Code started without a word, `InstructionsLoaded` logged only
+`CLAUDE.md`, and the session simply had no environment rules. Nothing reports that. Hence
+`tests/env-select.test.mjs`, and hence the hook writing visible prose — not a dangling
+import — when an OS file is missing.
 
 ## Restore on an existing machine
 
@@ -153,6 +208,12 @@ instead of quietly letting the raw file through.
   here carries `disable-model-invocation: true`: they are started by hand with `/name` and cost
   the listing nothing. Leave it out only for a skill you want Claude to offer on its own, and
   know that it then costs its description in every session.
+- **Adding an environment rule:** decide whose truth it is. True on this OS ->
+  `env-windows.md` / `env-linux.md`. True of this one installation (a tool being
+  installed, how it is authenticated) -> `env-machine.md`, which is not versioned. True
+  everywhere -> the **Tools and runtime** section of `CLAUDE.md`. That last one is the
+  case people get wrong: Node, Claude Code and tool behaviour read as "environment"
+  and are not.
 - **Adding a rule:** `rules/<topic>.md` **with** a `paths` frontmatter.
   `tests/rules-hygiene.test.mjs` refuses one without, because it would load in every session:
   a second CLAUDE.md that nobody is looking at.
