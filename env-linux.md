@@ -9,3 +9,14 @@ measured here would be worse than no rule. `/update-claude-md` is what fills it.
 
 Anything that turns out to hold on every platform belongs in the **Tools and runtime**
 section of `CLAUDE.md` instead, not here.
+
+- **Closing the window does not end Claude Desktop, and settings are read only when a
+  session starts.** Measured 2026-08-29, and it cost the better part of an hour before it
+  was noticed: the Electron process had been up for two days while a restart was believed
+  to have happened, so a rewritten `settings.json` — new hooks included — had never taken
+  effect, and nothing anywhere said so. Quit from the app menu, or `kill` the PID of
+  `/opt/claude-desktop/claude-desktop`; then resume the session, which re-reads every
+  instruction file, so the conversation survives it. Two one-line checks settle it:
+  `ps -o lstart= -p <pid>` for the process, and the mtime of `env-local.md`, which the
+  SessionStart hook rewrites on every start and which therefore doubles as a witness that
+  a session really began.
