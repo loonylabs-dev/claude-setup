@@ -48,7 +48,10 @@ instead.
   than failing. Prefix with `MSYS_NO_PATHCONV=1` whenever an argument starts with `/`.
   Bash builtins are unaffected — `echo /news/` proves nothing, test with a native
   program.
-- `gh` (GitHub CLI) **is** installed and authenticated as `loonylabs-dev`, scopes
+- **This one is a machine fact, not a Windows fact** — it belongs in `env-machine.md`,
+  which is not versioned. Moving it would delete it from the repository with nowhere to
+  put it, so it stays here until this machine writes it into its own file.
+  `gh` (GitHub CLI) **is** installed and authenticated as `loonylabs-dev`, scopes
   `repo`/`workflow`/`gist`/`read:org` — creating a repo, opening a PR or querying the
   API needs no manual step. Verified 2026-08-27; the previous entry claimed the
   opposite and was believed for months because nobody ran `gh --version`.
