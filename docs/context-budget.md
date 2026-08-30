@@ -16,6 +16,12 @@ pointing at a private proxy, `CLAUDE_CODE_MAX_CONTEXT_TOKENS` = 65536):
 **Those totals are measured; the attribution to individual settings below is not** — the
 knobs were not toggled one at a time. Treat the per-setting figures as order of magnitude.
 
+**Two of the knobs have since been toggled one at a time, and both came back worse than the
+table suggests.** `disableBundledSkills` costs tokens rather than saving them (§2), and
+`ENABLE_TOOL_SEARCH` trades its one-time saving for a re-prefill on every tool load (§1). The
+~13.3k above was reached with both on, so the honest reading of it is: reproduce the total
+yourself before trusting it.
+
 A ready-to-copy settings file and wrapper live in
 [`project-template/custom-backend/`](../project-template/custom-backend/).
 
@@ -48,6 +54,44 @@ rest — the remainder still saves an estimated 5–8k.
 
 **How to tell it worked:** `/context` shows the MCP tools as `(loaded on-demand)`.
 
+### What it costs on every load, and why that can outweigh the saving
+
+Deferred loading is not free once the session is running. When `ToolSearch` fetches a schema,
+the client does not append the tool — it inserts it into the `tools` array **in name order**.
+Measured 2026-08-31 on Claude Code 2.1.251, loading `WebFetch` into a 16-tool session, read
+off the raw request bodies through a logging proxy:
+
+| | before the load | after |
+|---|---|---|
+| tools in the array | 16 | 17 |
+| position of the new tool | — | **13**, between `ToolSearch` and `Workflow` |
+| `tools` block | 85744 chars | 86669, diverging at char 62983 |
+| `system` block | 9697 chars | 9697, **byte-identical** |
+
+The system prompt does not move and the conversation does not move. The insertion on its own
+is enough: from that byte on it is a different token sequence. Rendered in the usual `tools`
+→ `system` → `messages` order that is **54341 of 117324 characters — 46 % of the whole
+prompt — to re-prefill per loaded tool**, and again for the next one.
+
+**Against a backend with a positional prefix cache — llama.cpp, vLLM, Ollama, anything that
+reuses the longest common token prefix — this undoes the setting.** It buys 15–20k once at
+startup and charges ~46 % of the prompt every time a tool is loaded. A session that loads
+three tools has spent the saving several times over, and the sessions where you expect
+on-demand loading to help are exactly the ones that pay. Left off, every schema is inlined
+once and the `tools` block never changes again.
+
+So the saving below is a *startup* figure, and on your own backend it is the wrong quantity to
+optimise unless tool loading is rare. Measure a real session before keeping this on: log the
+request bodies and compare the `tools` array across two consecutive requests. If it grows, you
+are paying the 46 %.
+
+**Against Anthropic's endpoint it does not cost this.** Measured across six runs, Opus 5 and
+Haiku 4.5, first-party and through the proxy: the cache chain stayed exact
+(`read(n+1) = read(n) + write(n)`) although the same index-13 insertion was visible in the
+forwarded request. Something server-side reconciles it — the `DeferredToolPlaceholder` entry
+sitting in the array points that way. **Behaviour measured, mechanism not**, and it does not
+transfer to a backend you host yourself, which is what this document is about.
+
 ### Why ~11k of tools remains, whatever you do
 
 Deferred means *fetched later*, not *absent*. The core tools — `Bash`, `Read`, `Edit`,
@@ -58,19 +102,31 @@ remains is those schemas, the name list of every deferred tool, and ToolSearch i
 
 ---
 
-## 2. Bundled skills
+## 2. Bundled skills — do not set this one
 
 `disableBundledSkills: true` turns off everything that ships with Claude Code —
 `/code-review`, `/dataviz`, `/artifact-design`, `/claude-api`, `/security-review`, `/run`,
 `/init`. Their descriptions are long; all of them are listed at startup. `/doctor` stays
 available regardless (v2.1.205+).
 
-**Measured 2026-08-27: 6357 characters (~1600 tokens).** The whole skill listing went from
-7964 characters with 27 skills to 1607 with the 11 own ones. **Cost:** those commands are
-gone in this project, and they are genuinely useful ones — this is the knob to reconsider
-first if the window turns out to be big enough.
+**It costs 3315 tokens. It does not save 1600.** Measured 2026-08-31 on Claude Code 2.1.251:
+five one-shot runs, identical prompt, identical directory, prefix read as
+`cache_creation + cache_read` of the first response.
 
-**It is all or nothing, and that is not obvious.** Switching off individual bundled skills
+| `disableBundledSkills` | startup prefix |
+|---|---|
+| `true` | 30979 / 30983 / 30983 |
+| `false` | 27665 / 27666 |
+
+The spread inside each arm is under 5 tokens. Turning the setting on made the prompt **larger,
+reproducibly**, and cost `/code-review` and the rest on top.
+
+**What the earlier entry here got wrong.** It measured the skill *listing* — 7964 characters
+with 27 skills down to 1607 with the 11 own ones, which is real — and then read that as a
+prompt saving. It is not: the listing shrinks and something else grows by more. What grows was
+not measured. The effect is reproducible; the cause is not established.
+
+**Hiding them one at a time is no better.** Switching off individual bundled skills
 through `skillOverrides` saves far less than their listed size, because the listing is
 budget-capped (next section) and the remaining descriptions expand into the space freed.
 Measured: hiding `dataviz` and `design`, together 2175 characters of listing, saved 831.

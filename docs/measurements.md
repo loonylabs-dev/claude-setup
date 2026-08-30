@@ -123,6 +123,11 @@ characters. The fraction is a backstop against future growth, not a lever on tod
 returned 831, because the survivors expand into the space freed. The eleven own skills cost
 405 characters when the listing is full and 1607 when they are alone — the same skills.
 
+**And none of this is a prompt saving.** The table above measures the listing text and nothing
+else. Toggled on its own, `disableBundledSkills` makes the whole prompt 3315 tokens *larger* —
+see the section further down. A shrinking listing is not evidence of a shrinking prompt, which
+is the mistake `context-budget.md` §2 carried until 2026-08-31.
+
 **Hiding is a refusal, not an omission.** A model invocation of a skill hidden by
 `user-invocable-only` or `disable-model-invocation` comes back as an error. Asking for it in
 prose does not help — the model is not the user, and the call is refused the same way.
@@ -194,6 +199,83 @@ setting false the model answered `NONE`, with it true the marker came back.
 
 Old memory directories from an earlier period therefore cost nothing while the setting is
 off. They return the moment it is switched on.
+
+---
+
+## A tool loaded on demand is inserted into the middle of the `tools` array
+
+**Measured 2026-08-31 on Claude Code 2.1.251**, with a logging proxy on `127.0.0.1` in front
+of `api.anthropic.com` and `ANTHROPIC_BASE_URL` pointed at it, so the raw request bodies could
+be read. `ENABLE_TOOL_SEARCH=true`, `disableBundledSkills: true`, one one-shot run told to
+call `ToolSearch` for `WebFetch` and nothing else.
+
+The tool arrives **sorted by name, not appended**:
+
+```
+Agent, Artifact, Bash, Edit, Glob, Grep, ListAgents, PowerShell, Read, ReportFindings,
+ScheduleWakeup, Skill, ToolSearch, WebFetch, Workflow, DeferredToolPlaceholder, Write
+                                            ^^^^^^^^ index 13 of 17
+```
+
+`last3` stayed `Workflow, DeferredToolPlaceholder, Write` across all requests, so this is an
+insertion, not growth at the end.
+
+| | request 1 | request 2 |
+|---|---|---|
+| `tools` | 85744 chars | 86669, common prefix ends at 62983 |
+| `system` | 9697 chars | 9697, byte-identical |
+| `messages` | 20548 chars | 20958 |
+
+Nothing else moved. Rendered `tools` → `system` → `messages`, **54341 of 117324 characters
+(46 %) sit after the divergence** — that is what a positional prefix cache has to re-prefill
+per loaded tool. This is the cost `context-budget.md` §1 now warns about.
+
+There are **no `cache_control` breakpoints in the `tools` block at all**; they sit in `system`
+(two) and in `messages`.
+
+### But Anthropic's endpoint does not charge for it
+
+Same insertion, six runs — Opus 5 and Haiku 4.5, first-party and through the proxy, `Skill`
+loads as well as `ToolSearch` loads. The chain held exactly every time:
+
+| request | write | read | expected read |
+|---|---|---|---|
+| 1 | 10227 | 31042 | — |
+| 2 (tools 16 → 17) | 474 | 41269 | 31042 + 10227 = 41269 |
+| 3 (tools 17 → 18) | 414 | 41743 | 41269 + 474 = 41743 |
+
+A prefix rebuild would have shown `read` collapsing to 0. It never did, in any run. The
+documented invalidation hierarchy says a tool-definition change invalidates all three cache
+tiers, so something server-side reconciles this; the `DeferredToolPlaceholder` in the array is
+the visible hint. **Behaviour measured over six runs, mechanism not established** — and it says
+nothing about a self-hosted backend, which has no such reconciliation.
+
+**Instrument note:** the proxy must not diff the serialised request body top to bottom. The
+key order is `model, messages, system, tools, …`, so a naive common-prefix diff reports the
+divergence inside `messages` and misses the point entirely. Compare `tools`, `system` and
+`messages` separately.
+
+---
+
+## `disableBundledSkills` costs 3315 tokens
+
+**Measured 2026-08-31 on Claude Code 2.1.251.** Five one-shot runs, identical prompt,
+identical working directory, alternating. The startup prefix is
+`cache_creation_input_tokens + cache_read_input_tokens` of the first response.
+
+| `disableBundledSkills` | startup prefix |
+|---|---|
+| `true` | 30979 / 30983 / 30983 |
+| `false` | 27665 / 27666 |
+
+Spread inside each arm under 5 tokens; the gap is **+3315 for turning it on**. A sixth and
+seventh run with a different prompt gave 30856 vs 27678 — same direction, +3178.
+
+The runs were verified to differ as intended: the `true` transcripts contain no `dataviz` and
+no `code-review`, the `false` ones do.
+
+**What grows was not measured.** The skill listing does shrink as recorded above (7964 → 1607
+characters); something else more than makes up for it. Effect reproducible, cause open.
 
 ---
 

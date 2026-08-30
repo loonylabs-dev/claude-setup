@@ -9,6 +9,13 @@ to ~13k.
 [`docs/context-budget.md`](../../docs/context-budget.md). This folder is only the copyable
 part.
 
+**Two knobs were dropped from this file on 2026-08-31 and are now commented out in it.**
+`disableBundledSkills` was measured at **+3315 tokens for turning it on**, the opposite of what
+it was here for. `ENABLE_TOOL_SEARCH` still saves 15–20k at startup, but every on-demand tool
+load then inserts a schema into the middle of the `tools` array, and on a backend with a
+positional prefix cache that is ~46 % of the prompt to re-prefill — each time. The ~13k above
+was reached with both on, so treat it as a number to reproduce rather than to expect.
+
 ## Use
 
 1. Copy `settings.local.json.example` → `<project>/.claude/settings.local.json`

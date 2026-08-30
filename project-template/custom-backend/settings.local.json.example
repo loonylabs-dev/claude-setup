@@ -9,7 +9,8 @@
     "API_FORCE_IDLE_TIMEOUT": "0",
     "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "65536",
 
-    "ENABLE_TOOL_SEARCH": "true",
+    "_comment_ENABLE_TOOL_SEARCH": "Saves 15-20k at startup and then re-inserts a tool into the middle of the tools array on every on-demand load, which costs ~46% of the prompt to re-prefill on a backend with a positional prefix cache. Measure a real session before enabling it - docs/context-budget.md §1.",
+
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "CLAUDE_CODE_AUTO_CONNECT_IDE": "false",
     "CLAUDE_CODE_ATTRIBUTION_HEADER": "0"
@@ -20,7 +21,8 @@
     "C:\\Users\\YOU\\.claude\\CLAUDE.md"
   ],
 
-  "disableBundledSkills": true,
+  "_comment_disableBundledSkills": "Deliberately not set: measured +3315 tokens for turning it on, not the saving this template used to claim - docs/context-budget.md §2.",
+
   "skillListingBudgetFraction": 0.005,
 
   "enabledPlugins": {},
