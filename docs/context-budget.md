@@ -121,10 +121,22 @@ five one-shot runs, identical prompt, identical directory, prefix read as
 The spread inside each arm is under 5 tokens. Turning the setting on made the prompt **larger,
 reproducibly**, and cost `/code-review` and the rest on top.
 
+**What grows is the `Workflow` tool.** Its definition goes from 5355 characters to **21925**
+when the setting is on — +16570, and every other tool in the request is byte-identical
+(`Artifact` 29659, `PowerShell` 9244, `Agent` 3243, … unchanged in both arms); the system
+prompt even shrinks by 168. The setting hides bundled skills *and bundled workflows*, and with
+no ready-made workflows left to point at, the tool description carries the whole
+workflow-authoring guide instead. Measured through a logging proxy, per-tool, both arms.
+
 **What the earlier entry here got wrong.** It measured the skill *listing* — 7964 characters
 with 27 skills down to 1607 with the 11 own ones, which is real — and then read that as a
-prompt saving. It is not: the listing shrinks and something else grows by more. What grows was
-not measured. The effect is reproducible; the cause is not established.
+prompt saving. It is not: the listing shrinks and one tool definition grows by four times as
+much.
+
+**This has nothing to do with §1.** The two were fixed in the same pass and are independent:
+`disableBundledSkills` does not change the tool set, the tool order, or the on-demand loading
+behaviour. Measured — with the setting on and off the request carries the same 16 tools in the
+same order, and `WebFetch` is inserted at index 13 either way.
 
 **Hiding them one at a time is no better.** Switching off individual bundled skills
 through `skillOverrides` saves far less than their listed size, because the listing is

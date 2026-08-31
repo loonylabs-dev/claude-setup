@@ -21,7 +21,7 @@
     "C:\\Users\\YOU\\.claude\\CLAUDE.md"
   ],
 
-  "_comment_disableBundledSkills": "Deliberately not set: measured +3315 tokens for turning it on, not the saving this template used to claim - docs/context-budget.md §2.",
+  "_comment_disableBundledSkills": "Deliberately not set: measured +3315 tokens for turning it on, not the saving this template used to claim. It also hides bundled workflows, and the Workflow tool description then grows from 5355 to 21925 characters - docs/context-budget.md §2.",
 
   "skillListingBudgetFraction": 0.005,
 

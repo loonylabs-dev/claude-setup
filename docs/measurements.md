@@ -274,8 +274,42 @@ seventh run with a different prompt gave 30856 vs 27678 — same direction, +317
 The runs were verified to differ as intended: the `true` transcripts contain no `dataviz` and
 no `code-review`, the `false` ones do.
 
-**What grows was not measured.** The skill listing does shrink as recorded above (7964 → 1607
-characters); something else more than makes up for it. Effect reproducible, cause open.
+### What grows is one tool definition
+
+Same day, per-tool sizes read off the request bodies for both arms:
+
+| tool | `true` | `false` | delta |
+|---|---|---|---|
+| `Workflow` | **21925** | **5355** | **+16570** |
+| `Artifact` | 29659 | 29659 | 0 |
+| `PowerShell` | 9244 | 9244 | 0 |
+| `ScheduleWakeup` | 4631 | 4631 | 0 |
+| `Agent` | 3243 | 3243 | 0 |
+| *(all 12 others)* | — | — | 0 |
+| `system` | 9691 | 9859 | −168 |
+
+Every tool but one is byte-identical, and the system prompt shrinks slightly. The setting
+hides bundled skills **and bundled workflows** — and with no ready-made workflows left to
+point at, the `Workflow` tool description carries the whole authoring guide instead. 16570
+characters is ~4.1k tokens raw, against the +3315 measured in the prompt; the same effect.
+
+The skill listing does shrink as recorded above (7964 → 1607 characters). It is simply the
+smaller of the two movements, which is what made the original claim look right.
+
+### It does not touch tool loading
+
+Run through the proxy with the setting on and off, otherwise identical:
+
+|  | `true` | `false` |
+|---|---|---|
+| tools at request 1 | 16 | 16 |
+| tool order | identical | identical |
+| index of `WebFetch` after the load | 13 | 13 |
+| `tools` block | 85744 → 86669 | 69174 → 70099 |
+
+The insertion behaviour above belongs to `ENABLE_TOOL_SEARCH` alone. `disableBundledSkills`
+changes neither the tool set nor the order nor the loading — only the size of one description.
+The two findings were made in the same pass and are otherwise unrelated.
 
 ---
 
