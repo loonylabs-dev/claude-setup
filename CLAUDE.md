@@ -148,8 +148,3 @@ the mistake this heading exists to prevent.
   instead of a PID; where a PID is unavoidable, anchor the match on the interpreter
   (`pgrep -f '^python3 …'`) after launch. Measured 2026-08-31, three false "ended"
   events in one evening.
-- **A pipe eats the exit code a background task reports.** `cmd 2>&1 | tail -15`
-  exits with tail's 0, so a guard's refusal arrives as "completed (exit 0)" — a
-  build that never ran read as success until its output was reread. Redirect to a
-  file and read that; pipe nothing whose exit code you intend to trust. Measured
-  2026-08-31, twice in one session.
