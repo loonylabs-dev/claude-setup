@@ -75,7 +75,10 @@ prompt — to re-prefill per loaded tool**, and again for the next one.
 
 **Against a backend with a positional prefix cache — llama.cpp, vLLM, Ollama, anything that
 reuses the longest common token prefix — this undoes the setting.** It buys 15–20k once at
-startup and charges ~46 % of the prompt every time a tool is loaded. A session that loads
+startup and charges ~46 % of the prompt every time a tool is loaded. *(The divergence point
+and its size are measured, on the request bodies. That those three engines then re-prefill
+from it is read off how positional prefix caching works, not run against them — the cheap
+check is time-to-first-token on the request after a load, and it has not been done.)* A session that loads
 three tools has spent the saving several times over, and the sessions where you expect
 on-demand loading to help are exactly the ones that pay. Left off, every schema is inlined
 once and the `tools` block never changes again.
