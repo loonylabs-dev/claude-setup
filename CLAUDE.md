@@ -139,3 +139,17 @@ the mistake this heading exists to prevent.
   headersTimeout (300 s) is not settable through fetch options and surfaces as a bare
   `TypeError: fetch failed` / `UND_ERR_HEADERS_TIMEOUT` — indistinguishable from the
   server being down. Use `node:http` with `setTimeout(0)` for model calls.
+- **A detached job's PID is not `$!`, and `pgrep -f` finds your own command.**
+  `setsid nohup cmd &` puts the work in a grandchild: `$!` names the setsid wrapper,
+  which exits at once — and a `pgrep -f <pattern>` moments later matches the Bash
+  tool's own `bash -c` line, which contains the pattern too. A Monitor armed on
+  either PID reports "ended" seconds later while the work runs on. Watch the job's
+  LOG for a terminal marker it always writes (its own DONE line, `Traceback`)
+  instead of a PID; where a PID is unavoidable, anchor the match on the interpreter
+  (`pgrep -f '^python3 …'`) after launch. Measured 2026-08-31, three false "ended"
+  events in one evening.
+- **A pipe eats the exit code a background task reports.** `cmd 2>&1 | tail -15`
+  exits with tail's 0, so a guard's refusal arrives as "completed (exit 0)" — a
+  build that never ran read as success until its output was reread. Redirect to a
+  file and read that; pipe nothing whose exit code you intend to trust. Measured
+  2026-08-31, twice in one session.
