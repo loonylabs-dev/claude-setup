@@ -133,10 +133,24 @@ with 27 skills down to 1607 with the 11 own ones, which is real — and then rea
 prompt saving. It is not: the listing shrinks and one tool definition grows by four times as
 much.
 
-**This has nothing to do with §1.** The two were fixed in the same pass and are independent:
-`disableBundledSkills` does not change the tool set, the tool order, or the on-demand loading
-behaviour. Measured — with the setting on and off the request carries the same 16 tools in the
-same order, and `WebFetch` is inserted at index 13 either way.
+**It does not cause §1 — it doubles the price of it.** With the setting on and off the request
+carries the same 16 tools in the same order, and `WebFetch` is inserted at index 13 either
+way; `disableBundledSkills` changes neither the tool set nor the loading behaviour. What it
+changes is what sits *behind* the insertion point, and `Workflow` is the very next tool after
+index 13:
+
+| behind the insertion point | `true` | `false` |
+|---|---|---|
+| `Workflow` | 21925 | 5355 |
+| `DeferredToolPlaceholder` | 204 | 204 |
+| `Write` | 639 | 639 |
+| `system` | 9691 | 9859 |
+| **fixed re-prefill per tool load** | **32459** | **16057** |
+
+So it doubles what every on-demand load costs before the conversation is counted at all, and
+it does it by inflating the one tool that happens to sit at the insertion point. Two separate
+mechanisms landing on the same byte range — which is why switching this one off can make §1
+bearable, and why it can look like the culprit when §1 is the one still set.
 
 **Hiding them one at a time is no better.** Switching off individual bundled skills
 through `skillOverrides` saves far less than their listed size, because the listing is

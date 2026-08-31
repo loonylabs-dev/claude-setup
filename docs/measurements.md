@@ -296,7 +296,7 @@ characters is ~4.1k tokens raw, against the +3315 measured in the prompt; the sa
 The skill listing does shrink as recorded above (7964 → 1607 characters). It is simply the
 smaller of the two movements, which is what made the original claim look right.
 
-### It does not touch tool loading
+### It does not cause the insertion, it doubles what the insertion costs
 
 Run through the proxy with the setting on and off, otherwise identical:
 
@@ -307,9 +307,23 @@ Run through the proxy with the setting on and off, otherwise identical:
 | index of `WebFetch` after the load | 13 | 13 |
 | `tools` block | 85744 → 86669 | 69174 → 70099 |
 
-The insertion behaviour above belongs to `ENABLE_TOOL_SEARCH` alone. `disableBundledSkills`
-changes neither the tool set nor the order nor the loading — only the size of one description.
-The two findings were made in the same pass and are otherwise unrelated.
+So the insertion behaviour belongs to `ENABLE_TOOL_SEARCH` alone. But the tool that grows is
+`Workflow`, and `Workflow` is the **next tool after index 13** — precisely where ToolSearch
+inserts. Everything from the insertion point to the end of the system prompt has to be
+re-prefilled on a positional cache, and that block is:
+
+| behind the insertion point | `true` | `false` |
+|---|---|---|
+| `Workflow` | 21925 | 5355 |
+| `DeferredToolPlaceholder` | 204 | 204 |
+| `Write` | 639 | 639 |
+| `system` | 9691 | 9859 |
+| **sum** | **32459** | **16057** |
+
+Two independent mechanisms landing on the same byte range. Setting `disableBundledSkills`
+doubles the fixed cost of every on-demand tool load, on top of the +3315 tokens it costs
+standing still. Where both are set, switching this one off halves the per-load cost while
+leaving the loads themselves in place — which makes it easy to blame the wrong knob.
 
 ---
 
