@@ -110,6 +110,12 @@ the mistake this heading exists to prevent.
   it, the regex silently stops matching. `\n` becomes a real line break, `\s`/`\d`/`\w`
   only warn. Patch code through the Edit tool; where a script is unavoidable, use raw
   strings or `chr(92)`. Measured 2026-08-26.
+- **A `cd` inside a compound Bash call hijacks every command after it.** A chain
+  `cd ~/x && … && bash tests/run.sh` ran the tests from `~/x` and died with "no
+  such file" mid-chain while the earlier links succeeded — and the harness resets
+  cwd only after the call, so the next call shows nothing. Keep chains cwd-free
+  (absolute paths, `git -C`); where a `cd` is unavoidable, give it the whole
+  call. Measured 2026-08-31.
 - **Don't detect a missing command by its exit code.** Bash returns 127 (measured
   2026-08-27) but not every shell does, so a check written for it is shell-specific
   without saying so. Ask PATH (`which`) rather than the exit code, and resolve a
@@ -123,7 +129,8 @@ the mistake this heading exists to prevent.
   get_project` / `list_files` / `get_file` with that uuid returns the files (plain
   projects too, not only design systems).
 - Browser pane: `navigate` to 127.0.0.1 *or* localhost is "blocked by policy" — open
-  local servers with `preview_start {url}`. `computer key "Return"` never reaches the
+  local servers with `preview_start {url}` — and google.com was denied the same way
+  (2026-08-31), so the block is not only about local addresses. `computer key "Return"` never reaches the
   page as Enter, `"Enter"` does. Screenshot without `scale` is a 1:1 crop of the
   top-left; `scale: 1` is the whole viewport shrunk; `zoom` unsupported — and any
   screenshot fails outright while the pane is hidden, so verify server-rendered pages
